@@ -12,6 +12,10 @@ class Log
 
   {% for method, severity in SEVERITY_MAP %}
   def {{method.id}}(*, exception : Exception? = nil)
+    return unless backend = @backend
+    severity = Severity.new({{severity}})
+    return unless level <= severity
+
     block_result = yield
     block_result = block_result.to_h if block_result.is_a? NamedTuple
 
