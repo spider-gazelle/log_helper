@@ -16,9 +16,10 @@ class Log
       previous_def(exception: exception) do
         block_result = yield
 
-        if block_result.is_a? NamedTuple || block_result.is_a? Hash
-          block_result = block_result.to_h if block_result.is_a? NamedTuple && block_result.has_key?("message")
-          message = block_result.delete(:message) || block_result.delete("message") if block_result.is_a? Hash
+        block_result = block_result.to_h if block_result.is_a? NamedTuple
+
+        if block_result.is_a? Hash
+          message = block_result.delete(:message) || block_result.delete("message")
           Log.context.set(block_result)
           message
         else
@@ -28,4 +29,16 @@ class Log
     end
   end
   {% end %}
+end
+
+class Log::Context
+  # TODO: Remove after 0.34.0
+  def initialize(raw : Type?)
+    @raw = raw.nil? ? "" : raw
+  end
+
+  # TODO: Remove when Crystal allows Symbol in the Log::Context datum
+  def initialize(raw : String | Symbol)
+    @raw = raw.is_a?(Symbol) ? raw.to_s : raw
+  end
 end
