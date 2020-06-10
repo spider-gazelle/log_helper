@@ -23,17 +23,31 @@ describe Log do
 
   Spec.before_each { output.clear }
 
-  it "sets context via blocks that return a NamedTuple" do
+  it "sets entry data via blocks that return a NamedTuple" do
     log.fatal { {hello: "world", message: "okay"} }
     message, _, rest = output.to_s.chomp.partition(": ")
     message.should eq "okay"
     rest.should eq "hello=world"
   end
 
-  it "sets context via blocks that return a Hash" do
+  it "sets entry data via blocks that return a Hash" do
     log.fatal { {:hello => "world", :message => "okay"} }
     message, _, rest = output.to_s.chomp.partition(": ")
     message.should eq "okay"
+    rest.should eq "hello=world"
+  end
+
+  it "works with nil `Message`s within a NamedTuple" do
+    log.fatal { {hello: "world", message: nil} }
+    message, _, rest = output.to_s.chomp.partition(": ")
+    message.should eq ""
+    rest.should eq "hello=world"
+  end
+
+  it "works with nil `Message`s within a Hash" do
+    log.fatal { {:hello => "world", :message => nil} }
+    message, _, rest = output.to_s.chomp.partition(": ")
+    message.should eq ""
     rest.should eq "hello=world"
   end
 end

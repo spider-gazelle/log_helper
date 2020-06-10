@@ -19,9 +19,20 @@ class Log
 
       if block_result.is_a? Hash
         message = block_result.delete(:message) || block_result.delete("message")
-        dsl.emit(message: message, data: block_result)
+        if message.nil?
+          dsl.emit(data: block_result)
+        else
+          dsl.emit(message: message, data: block_result)
+        end
       elsif block_result.is_a? NamedTuple
-        dsl.emit(**block_result)
+        if block_result.has_key?(:message) && block_result[:message] == nil
+          # Special case as a `nil` message is interpreted as data in the spread
+          block_result = block_result.to_h
+          block_result.delete(:message)
+          dsl.emit(block_result)
+        else
+          dsl.emit(**block_result)
+        end
       else
         block_result
       end
