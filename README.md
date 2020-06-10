@@ -2,8 +2,7 @@
 
 [![Build Status](https://travis-ci.org/spider-gazelle/log_helper.svg?branch=master)](https://travis-ci.org/spider-gazelle/log_helper)
 
-Sets a temporary `Log::Context` in `Log` blocks that return either `Hash` or `NamedTuple`.
-If there's a `message` key in the object, it is deleted and set as the `Log::Entry`'s message.
+Spreads `Hash | NamedTuple` values passed in `Log` blocks into `Entry` metadata.
 
 ## Contributing
 
