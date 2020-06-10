@@ -6,22 +6,32 @@ describe Log do
   backend.formatter = Log::Formatter.new do |entry, io|
     io << entry.message
     io << ": "
-    entry.context.as_h.each do |k, v|
+    entry.context.each do |k, v|
+      io << k << "=" << v
+    end
+    entry.data.each do |k, v|
       io << k << "=" << v
     end
   end
-  Log.setup_from_env(backend: backend)
+
+  log = Log.for("*", level: :trace)
+
+  Spec.before_suite do
+    Log.builder.clear
+    log.backend = backend
+  end
+
   Spec.before_each { output.clear }
 
   it "sets context via blocks that return a NamedTuple" do
-    Log.info { {hello: "world", message: "okay"} }
+    log.fatal { {hello: "world", message: "okay"} }
     message, _, rest = output.to_s.chomp.partition(": ")
     message.should eq "okay"
     rest.should eq "hello=world"
   end
 
   it "sets context via blocks that return a Hash" do
-    Log.info { {:hello => "world", :message => "okay"} }
+    log.fatal { {:hello => "world", :message => "okay"} }
     message, _, rest = output.to_s.chomp.partition(": ")
     message.should eq "okay"
     rest.should eq "hello=world"

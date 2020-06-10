@@ -2,42 +2,35 @@ require "log"
 
 class Log
   private SEVERITY_MAP = {
-    debug:   Severity::Debug,
-    verbose: Severity::Verbose,
-    info:    Severity::Info,
-    warn:    Severity::Warning,
-    error:   Severity::Error,
-    fatal:   Severity::Fatal,
+    trace:  Severity::Trace,
+    debug:  Severity::Debug,
+    info:   Severity::Info,
+    notice: Severity::Notice,
+    warn:   Severity::Warn,
+    error:  Severity::Error,
+    fatal:  Severity::Fatal,
+    none:   Severity::None,
   }
 
   {% for method, severity in SEVERITY_MAP %}
   def {{method.id}}(*, exception : Exception? = nil)
-    Log.with_context do
-      previous_def(exception: exception) do
-        block_result = yield
+    previous_def(exception: exception) do |dsl|
+      block_result = yield dsl
 
-        block_result = block_result.to_h if block_result.is_a? NamedTuple
-
-        if block_result.is_a? Hash
-          message = block_result.delete(:message) || block_result.delete("message")
-          Log.context.set(block_result)
-          message
-        else
-          block_result
-        end
+      if block_result.is_a? Hash
+        message = block_result.delete(:message) || block_result.delete("message")
+        dsl.emit(message: message, data: block_result)
+      elsif block_result.is_a? NamedTuple
+        dsl.emit(**block_result)
+      else
+        block_result
       end
     end
   end
   {% end %}
 end
 
-class Log::Context
-  # TODO: Remove after 0.34.0
-  def initialize(raw : Type?)
-    @raw = raw.nil? ? "" : raw
-  end
-
-  # TODO: Remove when Crystal allows Symbol in the Log::Context datum
+struct Log::Metadata::Value
   def initialize(raw : String | Symbol)
     @raw = raw.is_a?(Symbol) ? raw.to_s : raw
   end
