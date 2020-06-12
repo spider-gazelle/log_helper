@@ -37,14 +37,28 @@ describe Log do
     rest.should eq "hello=world"
   end
 
-  it "works with nil `Message`s within a NamedTuple" do
+  it "works with missing `message` within a NamedTuple" do
+    log.fatal { {hello: "world"} }
+    message, _, rest = output.to_s.chomp.partition(": ")
+    message.should eq ""
+    rest.should eq "hello=world"
+  end
+
+  it "works with missing `message` within a Hash" do
+    log.fatal { {:hello => "world"} }
+    message, _, rest = output.to_s.chomp.partition(": ")
+    message.should eq ""
+    rest.should eq "hello=world"
+  end
+
+  it "works with nil `message` within a NamedTuple" do
     log.fatal { {hello: "world", message: nil} }
     message, _, rest = output.to_s.chomp.partition(": ")
     message.should eq ""
     rest.should eq "hello=world"
   end
 
-  it "works with nil `Message`s within a Hash" do
+  it "works with nil `message` within a Hash" do
     log.fatal { {:hello => "world", :message => nil} }
     message, _, rest = output.to_s.chomp.partition(": ")
     message.should eq ""
