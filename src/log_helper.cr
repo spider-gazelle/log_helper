@@ -17,15 +17,16 @@ class Log
     previous_def(exception: exception) do |dsl|
       block_result = yield dsl
 
-      if block_result.is_a? Hash
+      case block_result
+      when Hash
         message = block_result.delete(:message) || block_result.delete("message")
         if message.nil?
           dsl.emit(data: block_result)
         else
           dsl.emit(message: message, data: block_result)
         end
-      elsif block_result.is_a? NamedTuple
-        if block_result.has_key?(:message) && block_result[:message]? == nil
+      when NamedTuple
+        if block_result.has_key?(:message) && block_result[:message]?.nil?
           # Special case as a `nil` message is interpreted as data in the spread
           block_result = block_result.to_h
           block_result.delete(:message)
